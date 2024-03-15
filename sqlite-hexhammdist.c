@@ -1,28 +1,28 @@
 /*
- * hexhammdist - hamming distance between same-length hex strings in SQLite
- * Copyright (c) 2016, Daniel Roethlisberger <daniel@roe.ch>
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions, and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+* hexhammdist - hamming distance between same-length hex strings in SQLite
+* Copyright (c) 2016, Daniel Roethlisberger <daniel@roe.ch>
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+* 1. Redistributions of source code must retain the above copyright
+*    notice, this list of conditions, and the following disclaimer.
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the
+*    documentation and/or other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+* IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+* NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+* THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+* THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 #include <stdlib.h>
 #include <sqlite3ext.h>
 SQLITE_EXTENSION_INIT1
@@ -89,27 +89,24 @@ static const unsigned char unhextab[256] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-static void
-CAT(NAME, _func)(sqlite3_context *ctx, int args, sqlite3_value **argv)
+static void hexhammdist(sqlite3_context *ctx, int args, sqlite3_value **argv)
 {
 	const unsigned char *a, *b;
 	int res = 0;
 
 	if (args != 2) {
-		sqlite3_result_error(ctx, STR(NAME)": need 2 args", -1);
+		sqlite3_result_error(ctx, "hexhammdist: need 2 args", -1);
 		return;
 	}
 
 	a = sqlite3_value_text(argv[0]);
 	b = sqlite3_value_text(argv[1]);
 	if (!a) {
-		sqlite3_result_error(ctx, STR(NAME)": arg 1 has no text value",
-		                     -1);
+		sqlite3_result_error(ctx, "hexhammdist: arg 1 has no text value", -1);
 		return;
 	}
 	if (!b) {
-		sqlite3_result_error(ctx, STR(NAME)": arg 2 has no text value",
-		                     -1);
+		sqlite3_result_error(ctx, "hexhammdist: arg 2 has no text value",	-1);
 		return;
 	}
 	while (*a && *b) {
@@ -118,19 +115,18 @@ CAT(NAME, _func)(sqlite3_context *ctx, int args, sqlite3_value **argv)
 		SQLITE_SKIP_UTF8(b);
 	}
 	if (*a || *b) {
-		sqlite3_result_error(ctx, STR(NAME)": args not same length",
-		                     -1);
+		sqlite3_result_error(ctx, "hexhammdist: args not same length", -1);
 		return;
 	}
 	sqlite3_result_int(ctx, res);
 }
 
-int
-CAT(NAME, _init)(sqlite3 *db, char **errmsg, const sqlite3_api_routines *api)
-{
-	SQLITE_EXTENSION_INIT2(api);
-
-	return sqlite3_create_function_v2(db, STR(NAME), 2, SQLITE_UTF8, NULL,
-	                                  CAT(NAME, _func), NULL, NULL, NULL);
+int init_sqlite(sqlite3 *db){
+	return sqlite3_create_function(db, "hexhammdist", 2, SQLITE_ANY, 0, hexhammdist, 0, 0);
 }
 
+int sqlite3_hexhammdist_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi) {
+	int rc = SQLITE_OK;
+	SQLITE_EXTENSION_INIT2(pApi);
+	return init_sqlite(db);
+}
